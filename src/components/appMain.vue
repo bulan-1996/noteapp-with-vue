@@ -1,36 +1,3 @@
-<script setup>
-import { computed,ref, watch} from 'vue'
-import { defineProps } from 'vue';
-import Markdown from 'vue3-markdown-it';
-// 親コンポーネントからpropsとしてnotesとaddNoteを受け取る
-const props = defineProps(['notes','selectedNote']);
-
-// 選択されたノートのIDをリアクティブなrefで管理
-const selectedNoteId = ref(props.selectedNote || null);
-
-const getSelectedNote = computed(() => {
-  const note = props.notes.find((note) => note.id === selectedNoteId.value);
-  const currentDate = new Date();
-  if(!note) {
-    return note || {title: '', content: '', modDate: currentDate}; //該当するノートが見つからない場合
-  }
-  return note;
-});
-
-// 選択されたノートのIDが変更された場合にgetSelectedNoteを更新
-watch(() => props.selectedNote, (newSelectedNote) => {
-  selectedNoteId.value = newSelectedNote;
-});
-
-watch(() => getSelectedNote.value.title || getSelectedNote.value.content, () => {
-  saveNotesToLocalStorage();
-});
-
-function saveNotesToLocalStorage() {
-  localStorage.setItem('my_notes', JSON.stringify(props.notes));
-}
-</script>
-
 <template>
   <div class="app-main">
     <!-- メインエリアの内容をここに追加 -->
@@ -45,6 +12,51 @@ function saveNotesToLocalStorage() {
     </div>
   </div>
 </template>
+
+<script>
+import Markdown from 'vue3-markdown-it';
+
+export default {
+  components: {
+     Markdown,
+  },
+  props: ['notes','selectedNote'],
+  data() {
+    return {
+      selectedNoteId: this.selectedNote || null,
+    };
+  },
+  computed: {
+    getSelectedNote() {
+      const note = this.notes.find((note) => note.id === this.selectedNoteId);
+      const currentDate = new Date();
+      if(!note) {
+        return {title: '', content: '', modDate: currentDate}; //該当するノートが見つからない場合
+      }
+      return note;
+    },
+  },
+  watch: {
+    selectedNote(newSelectedNote) {
+      this.selectedNoteId = newSelectedNote;
+      this.saveNotesToLocalStorage();
+    },
+    'getSelectedNote.title'() {
+      this.saveNotesToLocalStorage();
+    },
+    'getSelectedNote.content'() {
+      this.saveNotesToLocalStorage();
+    },
+  },
+  methods: {
+    saveNotesToLocalStorage() {
+      localStorage.setItem('my_notes', JSON.stringify(this.notes));
+    },
+  },
+};
+</script>
+
+
 <style scoped>
     /* メインエリアに関するスタイルをここに追加 */
   .app-main {

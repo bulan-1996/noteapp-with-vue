@@ -1,37 +1,3 @@
-<script setup>
-import { defineProps, computed } from 'vue';
-
-// 親コンポーネントからpropsとしてnotesとaddNoteを受け取る
-const props = defineProps(['notes', 'addNote', 'deleteNote', 'selectNote']);
-
-// 子コンポーネントでnotesやaddNoteを使用するためのメソッドやデータを定義
-const addNewNote = () => {
-  // 親コンポーネントで定義されたaddNoteを呼び出し
-  props.addNote();
-};
-
-const deleteNote = (id) => {
-  props.deleteNote(id);
-}
-
-const selectNote = (id) => {
-  props.selectNote(id);
-}
-
-const formatDate = (date) => {
-  // toLocaleDateStringを使用してフォーマットを指定
-  return date ? new Date(date).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '';
-}
-
-// computedプロパティを追加して新しい順にソートされたノートを返す
-const sortedNotes = computed(() => {
-  return props.notes.slice().sort((a, b) => {
-    return new Date(b.modDate) - new Date(a.modDate);
-  });
-});
-
-</script>
-
 <template>
   <div class="app-sidebar">
     <!-- サイドバーの内容 -->
@@ -43,17 +9,45 @@ const sortedNotes = computed(() => {
       v-for="note in sortedNotes"
       :key="note.id"
       :class=" {'app-sidebar-note-selected': note.id === selectedNote} "
-      @click="selectNote(note.id)"
+      @click="selectNoteHandler(note.id)"
     >
         <div class="app-sidebar-title">
             <strong>{{ note.title }}</strong>
-            <button @click="() => deleteNote(note.id)">削除</button>
+            <button @click="() => deleteNoteHandler(note.id)">削除</button>
         </div>
         <p>{{ note.content }}</p>
         <small>{{ formatDate(note.modDate) }}</small>
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  props: ['notes', 'addNote', 'deleteNote', 'selectNote'],
+  computed: {
+    sortedNotes() {
+      return this.notes.slice().sort((a, b) => {
+        return new Date(b.modDate) - new Date(a.modDate);
+      });
+    }
+  },
+  methods: {
+    addNewNote() {
+      this.addNote();
+    },
+    deleteNoteHandler(id) {
+      this.deleteNote(id);
+    },
+    selectNoteHandler(id) {
+      this.selectNote(id);
+    },
+    formatDate(date) {
+      return date ? new Date(date).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '';
+    }
+  }
+}
+</script>
+
 <style scoped>
     /* サイドバーに関するスタイルをここに追加 */
   .app-sidebar {
